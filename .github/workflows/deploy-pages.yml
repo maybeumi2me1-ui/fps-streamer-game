@@ -33,6 +33,14 @@ jobs:
         run: npx playwright install --with-deps chromium
       - name: Test seven-day browser flow
         run: npm run test:browser
+      - name: Save browser failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pages-browser-failure
+          path: artifacts/
+          if-no-files-found: ignore
+          retention-days: 7
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:

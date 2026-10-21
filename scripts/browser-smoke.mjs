@@ -1,6 +1,6 @@
 import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
-import { existsSync, mkdirSync } from 'node:fs'
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
 
 const external = process.env.BASE_URL
@@ -12,7 +12,7 @@ const server = external
       ['run', 'preview', '--', '--port', '4180', '--strictPort', '--mode', 'github-pages'],
       { stdio: 'ignore', detached: process.platform !== 'win32' },
     )
-let browser
+let browser, page
 try {
   let ready = false
   for (let i = 0; i < 80; i++) {
@@ -33,18 +33,58 @@ try {
       (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined),
     args: ['--no-sandbox'],
   })
-  const page = await browser.newPage({ viewport: { width: 1440, height: 1050 } })
+  page = await browser.newPage({ viewport: { width: 1440, height: 1050 } })
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
   page.on('response', (r) => {
     if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`)
   })
   const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('fps-streamer-save-v1')))
-  const noOverflow = async () =>
+  const layoutDetails = () =>
+    page.evaluate(() => {
+      const width = innerWidth
+      return {
+        viewport: width,
+        document: document.documentElement.scrollWidth,
+        body: document.body.scrollWidth,
+        devicePixelRatio,
+        fonts: document.fonts.status,
+        mobileRules: matchMedia('(max-width: 720px)').matches,
+        elements: [...document.querySelectorAll('body *')]
+          .flatMap((element) => {
+            const rect = element.getBoundingClientRect()
+            if (rect.width === 0 || (rect.right <= width && rect.left >= 0)) return []
+            const css = getComputedStyle(element)
+            return [
+              {
+                tag: element.tagName,
+                class: element.getAttribute('class'),
+                left: rect.left,
+                right: rect.right,
+                width: rect.width,
+                minWidth: css.minWidth,
+                overflowX: css.overflowX,
+                position: css.position,
+                text: element.textContent?.trim().slice(0, 80),
+              },
+            ]
+          })
+          .slice(0, 40),
+      }
+    })
+  const noOverflow = async () => {
+    // setViewportSize updates the viewport, but style/media-query and font layout
+    // may finish on the following render frames in a different Chromium version.
+    await page.evaluate(async () => {
+      await document.fonts.ready
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)))
+    })
+    const details = await layoutDetails()
     assert.ok(
-      await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth),
-      'No horizontal overflow',
+      details.document <= details.viewport,
+      `No horizontal overflow: ${JSON.stringify(details)}`,
     )
+  }
   const click = async (name) => page.getByRole('button', { name, exact: true }).click()
   await page.goto(url)
   await noOverflow()
@@ -115,6 +155,28 @@ try {
       }
       if (day === 1 && stage === 1) {
         await page.setViewportSize({ width: 390, height: 844 })
+        await noOverflow()
+        // Replay every challenge label at narrow widths: the failed CI state
+        // is the economic round with an active audience challenge.
+        const baseline = await saved()
+        for (const challenge of ['pistol', 'aggressive', 'no-rifle', 'no-eco', 'solo']) {
+          const variant = structuredClone(baseline)
+          variant.match.challenges[0].id = challenge
+          await page.evaluate(
+            (v) => localStorage.setItem('fps-streamer-save-v1', JSON.stringify(v)),
+            variant,
+          )
+          await page.reload()
+          for (const width of [320, 360, 390]) {
+            await page.setViewportSize({ width, height: 844 })
+            await noOverflow()
+          }
+        }
+        await page.evaluate(
+          (v) => localStorage.setItem('fps-streamer-save-v1', JSON.stringify(v)),
+          baseline,
+        )
+        await page.reload()
         await noOverflow()
         await page.screenshot({ path: 'artifacts/v05-mobile-live.png', fullPage: true })
       }
@@ -211,6 +273,42 @@ try {
   console.log(
     'PASS browser: V0.5 maps + persisted selection, original atlas budget, live tactical effects, actual win/loss feedback, player chat, filtering; 7 days / 35 ranked rounds and interactions, delayed challenge, timed chat, live+report reload, one-shot choices, clips+promotion, ad fallback, history, reset, legacy migration, corrupt recovery, desktop+390px layout, Pages JS/CSS paths; zero browser/HTTP errors.',
   )
+} catch (error) {
+  mkdirSync('artifacts', { recursive: true })
+  if (page && !page.isClosed()) {
+    try {
+      const details = await page.evaluate(() => ({
+        url: location.href,
+        viewport: { width: innerWidth, height: innerHeight },
+        documentWidth: document.documentElement.scrollWidth,
+        bodyWidth: document.body.scrollWidth,
+        fonts: document.fonts.status,
+        elements: [...document.querySelectorAll('body *')]
+          .flatMap((e) => {
+            const r = e.getBoundingClientRect()
+            return r.right > innerWidth || r.left < 0
+              ? [
+                  {
+                    tag: e.tagName,
+                    class: e.getAttribute('class'),
+                    left: r.left,
+                    right: r.right,
+                    width: r.width,
+                    minWidth: getComputedStyle(e).minWidth,
+                  },
+                ]
+              : []
+          })
+          .slice(0, 60),
+      }))
+      writeFileSync('artifacts/failure-layout.json', JSON.stringify(details, null, 2))
+      console.error('Browser failure layout:', JSON.stringify(details))
+      await page.screenshot({ path: 'artifacts/failure.png', fullPage: true })
+    } catch (diagnosticError) {
+      console.error('Could not capture diagnostics:', diagnosticError)
+    }
+  }
+  throw error
 } finally {
   if (browser) await browser.close()
   if (server) {

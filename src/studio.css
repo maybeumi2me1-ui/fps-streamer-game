@@ -1600,3 +1600,20 @@ footer b {
 .tactic-art {
   background-size: 100% 300%;
 }
+/* Let content shrink inside the responsive tracks rather than forcing an
+   intrinsic text width on narrow screens with different system fonts. */
+.layout > *,
+.heading > div:first-child,
+.challenge-active > span,
+.tactic-card-title,
+.tactic-card-title > b {
+  min-width: 0;
+}
+.challenge-active > span,
+.tactic-card-title > b {
+  overflow-wrap: anywhere;
+}
+.challenge-active > button,
+.tactic-card-title > strong {
+  flex-shrink: 0;
+}
