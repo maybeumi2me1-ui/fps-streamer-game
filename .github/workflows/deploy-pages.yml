@@ -25,8 +25,14 @@ jobs:
           cache: npm
       - name: Install dependencies
         run: npm ci
+      - name: Test ranked and streaming systems
+        run: npm test
       - name: Typecheck and build for Pages
         run: npm run build -- --mode github-pages
+      - name: Install browser for smoke checks
+        run: npx playwright install --with-deps chromium
+      - name: Test seven-day browser flow
+        run: npm run test:browser
       - name: Upload website
         uses: actions/upload-pages-artifact@v3
         with:
