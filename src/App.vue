@@ -231,7 +231,10 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
         </div>
         <div class="day">
           <small>生涯进度</small
-          ><strong>DAY {{ String(s.day).padStart(2, '0') }}<em> / 07</em></strong>
+          ><strong
+            ><span class="day-current">DAY {{ String(s.day).padStart(2, '0') }}</span
+            ><em>/ 07</em></strong
+          >
           <div class="day-track"><i v-for="d in 7" :key="d" :class="{ done: d <= s.day }"></i></div>
         </div>
       </div>

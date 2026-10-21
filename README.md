@@ -98,3 +98,11 @@ npm run test:browser
 在仓库 **Actions → Deploy game to GitHub Pages → 最新运行** 查看 `build` 和 `deploy`，两者绿色表示发布完成。失败时点击失败步骤看错误；修复后 **Re-run all jobs**。也可 **Run workflow → main → Run workflow** 手动触发。
 
 游戏地址：https://maybeumi2me1-ui.github.io/fps-streamer-game/
+
+### 手机天数计数器回归检查
+
+`DAY 01 / 07` 在旧样式中使用固定 84px 容器并禁止换行，Linux 的 DejaVu Sans 字体会使后缀超出页面约 2px。现已改为内容宽度的独立 flex 项，标题在旁边正常换行。
+
+浏览器测试覆盖 320、360、390、430px，system-ui / DejaVu Sans / monospace 三种字体，以及 DPR 1 和 2；保持 `document.scrollWidth <= innerWidth` 的严格断言。CI 使用锁文件中 Playwright 对应的浏览器，本地可用系统 Chromium 或 `PLAYWRIGHT_CHROMIUM_EXECUTABLE`，运行日志会打印实际版本及路径，便于比较。字体加载及两帧布局完成后才测量尺寸。
+
+再次失败时，Actions 的 `pages-browser-failure` 附件包含 `failure.png`、`failure-layout.json`。JSON 提供越界元素的 DOM 路径、四层父容器尺寸与计算样式，以及视口、字体、DPR；不会通过隐藏页面横向溢出来绕过检查。

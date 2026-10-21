@@ -71,6 +71,9 @@ main {
   width: 130px;
 }
 .day strong {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
   font-size: 22px;
 }
 .day-track i {
@@ -1156,8 +1159,11 @@ footer b {
     letter-spacing: 1px;
   }
   .day {
-    min-width: 84px;
-    width: 84px;
+    /* Numeric text widths vary across Linux/browser fallback fonts. The
+       counter owns its intrinsic width; the heading text can wrap beside it. */
+    min-width: 0;
+    width: max-content;
+    flex: 0 0 auto;
   }
   .day strong {
     font-size: 18px;

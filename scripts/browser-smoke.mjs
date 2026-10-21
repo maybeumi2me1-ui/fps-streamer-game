@@ -2,6 +2,7 @@ import { chromium } from 'playwright'
 import { spawn } from 'node:child_process'
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs'
 import assert from 'node:assert/strict'
+import { inspectLayout } from './layout-diagnostics.mjs'
 
 const external = process.env.BASE_URL
 const url = external || 'http://127.0.0.1:4180/fps-streamer-game/'
@@ -30,48 +31,28 @@ try {
     headless: true,
     executablePath:
       process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ||
-      (existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined),
+      (!process.env.CI && existsSync('/usr/bin/chromium') ? '/usr/bin/chromium' : undefined),
     args: ['--no-sandbox'],
   })
-  page = await browser.newPage({ viewport: { width: 1440, height: 1050 } })
+  console.log(
+    'Browser runtime:',
+    JSON.stringify({
+      version: browser.version(),
+      executable:
+        process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE ||
+        (!process.env.CI && existsSync('/usr/bin/chromium')
+          ? '/usr/bin/chromium'
+          : chromium.executablePath()),
+    }),
+  )
+  page = await browser.newPage({ viewport: { width: 1440, height: 1050 }, deviceScaleFactor: 1 })
   const errors = []
   page.on('pageerror', (e) => errors.push(e.message))
   page.on('response', (r) => {
     if (r.status() >= 400) errors.push(`${r.status()} ${r.url()}`)
   })
   const saved = () => page.evaluate(() => JSON.parse(localStorage.getItem('fps-streamer-save-v1')))
-  const layoutDetails = () =>
-    page.evaluate(() => {
-      const width = innerWidth
-      return {
-        viewport: width,
-        document: document.documentElement.scrollWidth,
-        body: document.body.scrollWidth,
-        devicePixelRatio,
-        fonts: document.fonts.status,
-        mobileRules: matchMedia('(max-width: 720px)').matches,
-        elements: [...document.querySelectorAll('body *')]
-          .flatMap((element) => {
-            const rect = element.getBoundingClientRect()
-            if (rect.width === 0 || (rect.right <= width && rect.left >= 0)) return []
-            const css = getComputedStyle(element)
-            return [
-              {
-                tag: element.tagName,
-                class: element.getAttribute('class'),
-                left: rect.left,
-                right: rect.right,
-                width: rect.width,
-                minWidth: css.minWidth,
-                overflowX: css.overflowX,
-                position: css.position,
-                text: element.textContent?.trim().slice(0, 80),
-              },
-            ]
-          })
-          .slice(0, 40),
-      }
-    })
+  const layoutDetails = () => page.evaluate(inspectLayout)
   const noOverflow = async () => {
     // setViewportSize updates the viewport, but style/media-query and font layout
     // may finish on the following render frames in a different Chromium version.
@@ -81,13 +62,54 @@ try {
     })
     const details = await layoutDetails()
     assert.ok(
-      details.document <= details.viewport,
+      details.documentWidth <= details.viewport.width,
       `No horizontal overflow: ${JSON.stringify(details)}`,
     )
   }
   const click = async (name) => page.getByRole('button', { name, exact: true }).click()
   await page.goto(url)
   await noOverflow()
+  for (const dpr of [1, 2]) {
+    const original = page
+    let probePassed = false
+    page = await browser.newPage({ viewport: { width: 390, height: 844 }, deviceScaleFactor: dpr })
+    try {
+      await page.goto(url)
+      for (const font of ['system-ui', 'DejaVu Sans', 'monospace']) {
+        await page
+          .locator('.day')
+          .evaluate((element, family) => (element.style.fontFamily = family), font)
+        for (const width of [320, 360, 390, 430]) {
+          await page.setViewportSize({ width, height: 844 })
+          await noOverflow()
+          const counter = await page.locator('.day').evaluate((element) => {
+            const box = element.getBoundingClientRect(),
+              suffix = element.querySelector('em').getBoundingClientRect()
+            return {
+              left: box.left,
+              right: box.right,
+              suffixLeft: suffix.left,
+              suffixRight: suffix.right,
+            }
+          })
+          assert.ok(
+            counter.suffixLeft >= counter.left && counter.suffixRight <= counter.right,
+            `Day counter must contain its suffix: ${JSON.stringify({ font, width, dpr, counter })}`,
+          )
+        }
+      }
+      probePassed = true
+    } finally {
+      // Keep a failing probe open so outer catch can capture the actual page.
+      if (probePassed) {
+        await page.close()
+        page = original
+      }
+    }
+  }
+  console.log(
+    'PASS day-counter regression: 320/360/390/430px × system-ui/DejaVu Sans/monospace × DPR 1/2',
+  )
   assert.equal(await page.locator('.map-card').count(), 3)
   for (const id of ['transit', 'harbor', 'oldtown']) {
     await page
@@ -167,7 +189,7 @@ try {
             variant,
           )
           await page.reload()
-          for (const width of [320, 360, 390]) {
+          for (const width of [320, 360, 390, 430]) {
             await page.setViewportSize({ width, height: 844 })
             await noOverflow()
           }
@@ -277,30 +299,7 @@ try {
   mkdirSync('artifacts', { recursive: true })
   if (page && !page.isClosed()) {
     try {
-      const details = await page.evaluate(() => ({
-        url: location.href,
-        viewport: { width: innerWidth, height: innerHeight },
-        documentWidth: document.documentElement.scrollWidth,
-        bodyWidth: document.body.scrollWidth,
-        fonts: document.fonts.status,
-        elements: [...document.querySelectorAll('body *')]
-          .flatMap((e) => {
-            const r = e.getBoundingClientRect()
-            return r.right > innerWidth || r.left < 0
-              ? [
-                  {
-                    tag: e.tagName,
-                    class: e.getAttribute('class'),
-                    left: r.left,
-                    right: r.right,
-                    width: r.width,
-                    minWidth: getComputedStyle(e).minWidth,
-                  },
-                ]
-              : []
-          })
-          .slice(0, 60),
-      }))
+      const details = await page.evaluate(inspectLayout)
       writeFileSync('artifacts/failure-layout.json', JSON.stringify(details, null, 2))
       console.error('Browser failure layout:', JSON.stringify(details))
       await page.screenshot({ path: 'artifacts/failure.png', fullPage: true })
