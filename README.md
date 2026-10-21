@@ -38,3 +38,15 @@ npm run preview
 
 - `npm run build`：TypeScript 检查与生产构建。
 - 已通过 Chromium 自动化跑通 7 天、21 个事件、126 次靶心命中、推广防重复、存档恢复、成长记录、重新开始、损坏存档恢复与 390px 手机宽度检查。
+
+## GitHub Pages 自动部署
+
+推送到 `main` 后，`.github/workflows/deploy-pages.yml` 会安装锁定依赖、执行 TypeScript 检查、构建并部署 `dist/`。
+
+首次启用：打开 GitHub 仓库 → **Settings** → 左侧 **Pages** → **Build and deployment** → **Source** 选择 **GitHub Actions**。
+
+之后打开 **Actions** → **Deploy game to GitHub Pages** 查看进度。如首次流程在开启 Pages 前失败，点击失败的运行 → **Re-run all jobs**。也可以在此工作流页面点击 **Run workflow**，选择 `main` 并运行。
+
+游戏地址：https://maybeumi2me1-ui.github.io/fps-streamer-game/
+
+Pages 构建使用 `npm run build -- --mode github-pages`，自动设置 `/fps-streamer-game/` 资源前缀；本地开发不受影响。首次发布需要等待 Actions 的 build 和 deploy 都成功。GitHub Pages 的浏览器存档独立于本地开发地址。
