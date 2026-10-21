@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import { computed, onUnmounted, ref, watch } from 'vue'
 import FpsScene from './components/FpsScene.vue'
+import AgentPortrait from './components/AgentPortrait.vue'
+import WeaponModel from './components/WeaponModel.vue'
+import { maps, mapById, effects, type MapId } from './game/visuals'
 import { events, eventById, styles, challenges, stageNames } from './game/content'
 import { audience } from './game/chat'
 import {
@@ -22,7 +25,36 @@ import {
 } from './game/engine'
 import { load, persist } from './game/storage'
 import { adService } from './game/ads'
-import type { Choice, Style } from './game/types'
+import type { Choice, Style, Tag } from './game/types'
+const previewTag = ref<Tag | null>(null)
+const chatDraft = ref('')
+const chatTab = ref<'all' | 'gift' | 'fans'>('all')
+const visibleFeed = computed(
+  () =>
+    m.value?.feed.filter(
+      (line) =>
+        chatTab.value === 'all' || line.kind === (chatTab.value === 'gift' ? 'gift' : 'follow'),
+    ) ?? [],
+)
+const selectedMap = computed(() => mapById(s.value.mapId ?? 'oldtown'))
+const atlas = `${import.meta.env.BASE_URL}art/tactical-maps.webp`
+function mapStyle(id: string) {
+  return { backgroundImage: `url(${atlas})`, backgroundPosition: `center ${mapById(id).position}` }
+}
+function selectMap(id: MapId) {
+  if (s.value.phase !== 'desk') return
+  s.value.mapId = id
+  previewTag.value = null
+  save()
+}
+function sendChat() {
+  const text = chatDraft.value.trim().slice(0, 60)
+  if (!live.value || !m.value || !text) return
+  m.value.feed.push({ id: ++m.value.chatCursor, name: '主播 · 无名之辈', text, kind: 'chat' })
+  m.value.feed = m.value.feed.slice(-12)
+  chatDraft.value = ''
+  save()
+}
 const initial = load(),
   s = ref(initial.state),
   notice = ref(initial.notice),
@@ -73,12 +105,16 @@ function start() {
   }
 }
 function choose(c: Choice) {
-  if (resolveRound(s.value, c.id)) save()
+  if (resolveRound(s.value, c.id)) {
+    previewTag.value = null
+    save()
+  }
 }
 function respond(c: Choice) {
   if (interact(s.value, c.id)) save()
 }
 function next() {
+  previewTag.value = null
   if (advance(s.value)) {
     notice.value = ''
     save()
@@ -120,6 +156,8 @@ function tomorrow() {
 }
 function restart() {
   if (!confirm('重新开始会覆盖当前 7 天存档，确定吗？')) return
+  previewTag.value = null
+  chatDraft.value = ''
   s.value = fresh()
   showData.value = false
   notice.value = '新的主播生涯开始了。'
@@ -159,8 +197,8 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
   <div class="shell">
     <header>
       <a class="brand" href="./"
-        ><span class="logo">⌖</span> STREAMER<span class="brand-light">
-          / FPS 主播模拟器 <b>V0.4</b></span
+        ><span class="logo">⌖</span> FPS 主播模拟器<span class="brand-light">
+          / TACTICAL × LIVE <b>V0.5</b></span
         ></a
       >
       <div class="header-right">
@@ -197,7 +235,31 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
           <div class="day-track"><i v-for="d in 7" :key="d" :class="{ done: d <= s.day }"></i></div>
         </div>
       </div>
-      <div class="layout">
+      <div class="layout" :class="{ 'studio-live': live, 'studio-report': s.phase === 'report' }">
+        <nav v-if="s.phase !== 'report'" class="map-rail" aria-label="原创地图选择">
+          <div class="rail-heading"><b>作战地图</b><small>ORIGINAL BATTLEFIELDS</small></div>
+          <button
+            v-for="(map, i) in maps"
+            :key="map.id"
+            class="map-card"
+            :class="{ selected: s.mapId === map.id }"
+            :aria-pressed="s.mapId === map.id"
+            :disabled="live"
+            @click="selectMap(map.id)"
+          >
+            <div class="map-thumbnail" :style="mapStyle(map.id)"></div>
+            <span class="map-number">0{{ i + 1 }}</span>
+            <div class="map-card-copy">
+              <b>{{ map.name }}</b
+              ><small>{{ map.note }}</small>
+            </div>
+            <span v-if="s.mapId === map.id" class="map-check">● 已选</span>
+          </button>
+          <p>{{ live ? '当前直播地图已锁定' : '开播前选择地图 · 仅改变视听表现' }}</p>
+          <div class="rail-season">
+            <span>SEASON 01</span><b>七日成名计划</b><small>排位实力 × 主播影响力</small>
+          </div>
+        </nav>
         <section class="workspace">
           <div class="window-bar">
             <span
@@ -209,16 +271,23 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
                   live ? '● ' + timerText : s.phase === 'report' ? '直播结算' : '主播工作台'
                 }}</small
               ></span
-            ><span class="window-icons">V0.4　—　□</span>
+            ><span class="window-icons">V0.5　—　□</span>
           </div>
           <template v-if="s.phase !== 'report'">
             <div class="game" :class="{ desktop: !live }">
               <div class="game-top">
-                <span class="map">▧ TWILIGHT HARBOR <small>暮光港区 · 原创地图</small></span
+                <span class="map"
+                  >▧ {{ selectedMap.english }}
+                  <small>{{ selectedMap.name }} · 原创地图</small></span
                 ><span class="live-badge" v-if="live">● LIVE · {{ m?.viewers }} 人观看</span
                 ><span class="offline" v-else>排位准备</span>
               </div>
-              <FpsScene :match="live ? m : null" @shoot="hit" />
+              <FpsScene
+                :match="live ? m : null"
+                :map-id="s.mapId ?? 'oldtown'"
+                :preview="previewTag"
+                @shoot="hit"
+              />
             </div>
             <div v-if="!live" class="desk-actions">
               <div class="section-title">
@@ -297,15 +366,24 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
                 </div>
                 <h2>{{ current.title }}</h2>
                 <p>{{ current.text }}</p>
-                <div class="strategy-choices">
+                <div class="strategy-choices tactical-cards">
                   <button
                     v-for="c in current.choices"
                     :key="c.id"
                     :disabled="!!choiceBlocked(s, c)"
                     :title="choiceBlocked(s, c)"
+                    :class="['tactic-' + effects[c.tag].kind]"
+                    @pointerenter="previewTag = c.tag"
+                    @pointerleave="previewTag = null"
+                    @focus="previewTag = c.tag"
+                    @blur="previewTag = null"
                     @click="choose(c)"
                   >
-                    <div>
+                    <div class="tactic-art" :style="mapStyle(selectedMap.id)">
+                      <span class="tactic-glyph">{{ effects[c.tag].icon }}</span
+                      ><span class="tactic-art-name">{{ effects[c.tag].name }}</span>
+                    </div>
+                    <div class="tactic-card-title">
                       <b>{{ c.label }}</b
                       ><strong :class="{ danger: probability(c) < 45 }"
                         >{{ probability(c) }}%<small> 预计胜率</small></strong
@@ -440,9 +518,9 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
               主播档案 <span>{{ styles[s.style].name }} / DAY {{ s.day }}</span>
             </div>
             <div class="identity">
-              <div class="avatar">⌐■_■</div>
+              <div class="avatar"><AgentPortrait /></div>
               <div>
-                <h2>无名之辈</h2>
+                <h2>无名之辈 <span v-if="live" class="profile-live">LIVE</span></h2>
                 <small>排位有起伏，直播不止输赢。</small>
               </div>
               <span class="status-light"></span>
@@ -489,9 +567,26 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
             <div class="section-title">
               <span>◌ 直播弹幕</span><small>{{ live ? '实时连线' : '等待开播' }}</small>
             </div>
+            <div class="chat-tabs" role="group" aria-label="弹幕筛选">
+              <button :aria-pressed="chatTab === 'all'" @click="chatTab = 'all'">直播弹幕</button
+              ><button :aria-pressed="chatTab === 'gift'" @click="chatTab = 'gift'">♛ 礼物</button
+              ><button :aria-pressed="chatTab === 'fans'" @click="chatTab = 'fans'">
+                ♡ 新关注
+              </button>
+            </div>
             <div v-if="live && m" class="messages live-chat" role="log" aria-label="实时弹幕">
-              <p v-for="line in m.feed" :key="line.id" :class="line.kind">
-                <span>{{ line.name }}</span> {{ line.text }}
+              <p v-for="line in visibleFeed" :key="line.id" :class="line.kind">
+                <i
+                  class="viewer-icon"
+                  :style="{ '--viewer-hue': (line.name.charCodeAt(0) * 13) % 360 }"
+                  >{{
+                    line.kind === 'gift'
+                      ? '♛'
+                      : line.kind === 'follow'
+                        ? '♥'
+                        : line.name.slice(0, 1)
+                  }}</i
+                ><span>{{ line.name }}</span> {{ line.text }}
               </p>
             </div>
             <div v-else class="chat-empty">
@@ -499,9 +594,15 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
               <p>有人在等你开播。</p>
               <small>8 位常驻观众，每个人都有自己的偏好。</small>
             </div>
-            <div class="chat-input">
-              {{ live ? '弹幕逐条刷新 · 不影响决策时间' : '直播间还没有开启…' }}<span>↵</span>
-            </div>
+            <form class="chat-compose" @submit.prevent="sendChat">
+              <input
+                v-model="chatDraft"
+                :disabled="!live"
+                maxlength="60"
+                aria-label="发送主播弹幕"
+                :placeholder="live ? '发个弹幕，一起为主播加油！' : '开播后可发送主播弹幕'"
+              /><button :disabled="!live || !chatDraft.trim()" aria-label="发送弹幕">➤</button>
+            </form>
           </section>
           <button class="data-button" @click="showData = true">
             ▥ 数据中心 · 成长与常驻观众 →
@@ -514,10 +615,39 @@ const probability = (c: Choice) => Math.round(chance(s.value, c) * 100)
           </div>
         </aside>
       </div>
+      <section class="visual-showcase" aria-label="原创战术装备">
+        <div class="equipment-showcase">
+          <div class="showcase-title">
+            <b>原创枪械 / ARSENAL</b><small>装备随实际购买和挑战变化</small>
+          </div>
+          <div class="weapon-shelf">
+            <div v-for="(name, i) in ['P-12 霜牙', 'M-24 雾线', 'R-09 赤脉']" :key="name">
+              <WeaponModel :gear="i + 1" :hands="false" /><b>{{ name }}</b
+              ><small>{{ ['手枪 · 低成本', '冲锋枪 · 机动火力', '步枪 · 全起压制'][i] }}</small>
+            </div>
+          </div>
+        </div>
+        <div class="effects-showcase">
+          <div class="showcase-title">
+            <b>战术技能 / TACTICS</b><small>由实际战术触发，不额外收费</small>
+          </div>
+          <div class="effect-legend">
+            <div
+              v-for="tag in ['team', 'steady', 'half', 'risky'] as const"
+              :key="tag"
+              :class="'legend-' + effects[tag].kind"
+            >
+              <i>{{ effects[tag].icon }}</i
+              ><b>{{ effects[tag].name }}</b
+              ><small>{{ effects[tag].description }}</small>
+            </div>
+          </div>
+        </div>
+      </section>
       <p v-if="notice" class="notice" role="status">{{ notice }}</p>
       <footer>
-        <span>FPS STREAMER SIMULATOR / V0.4</span
-        ><span>原创港区 · 五回合排位 · 七天生涯 <b>GLHF ↗</b></span>
+        <span>FPS STREAMER SIMULATOR / V0.5</span
+        ><span>三张原创地图 · 五回合排位 · 七天生涯 <b>GLHF ↗</b></span>
       </footer>
     </main>
     <div

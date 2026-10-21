@@ -408,3 +408,36 @@ test('technical, entertainment and balanced careers have different viable growth
   }
   console.log('60 seeded seven-day careers per style:', summary)
 })
+
+test('V0.5 visual states derive from actual tactics and outcomes without mutating gameplay', async () => {
+  const { battleVisual, effects, maps } = await import('../src/game/visuals')
+  assert.equal(maps.length, 3)
+  const s = fresh()
+  startMatch(s, 'balanced', 88)
+  const before = JSON.stringify(s)
+  for (const tag of ['steady', 'team', 'risky', 'half', 'eco', 'full', 'save'] as Tag[]) {
+    assert.equal(battleVisual(s.match, tag).effect!.kind, effects[tag].kind)
+  }
+  assert.equal(JSON.stringify(s), before)
+  resolveRound(s, eventById(s.match!.eventId).choices[0]!.id)
+  const view = battleVisual(s.match)
+  assert.equal(view.effect!.kind, 'scan')
+  assert.equal(view.outcome, s.match!.results.at(-1)!.won ? 'won' : 'lost')
+  assert.equal(view.gear, s.match!.gear)
+})
+
+test('V0.4 saves remain compatible with V0.5 map preference and live restoration', () => {
+  const s = fresh()
+  startMatch(s, 'balanced', 18)
+  const raw = JSON.parse(JSON.stringify(s))
+  delete raw.mapId
+  assert.equal(migrate(raw).mapId, 'oldtown')
+  for (const id of ['oldtown', 'transit', 'harbor'] as const) {
+    raw.mapId = id
+    const restored = migrate(raw)
+    assert.equal(restored.mapId, id)
+    assert.deepEqual(restored.match, s.match)
+  }
+  raw.mapId = 'unknown'
+  assert.equal(migrate(raw).mapId, 'oldtown')
+})

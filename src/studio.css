@@ -1,0 +1,1602 @@
+/* V0.5 broadcast desk: map rail / interactive combat monitor / streaming panel. */
+:root {
+  color: #e0e9f3;
+  background: #090f18;
+  font-family: 'Noto Sans SC', system-ui, sans-serif;
+}
+body {
+  background:
+    radial-gradient(ellipse at 48% -15%, #203a5166, transparent 55%),
+    linear-gradient(135deg, #111c29 0, #0a111b 40%, #101723 100%);
+  min-height: 100vh;
+}
+header {
+  height: 73px;
+  background: #0c1421b8;
+  border-color: #31425b8c;
+  backdrop-filter: blur(8px);
+  padding: 0 max(28px, calc((100vw - 1580px) / 2));
+}
+.brand {
+  font-size: 23px;
+  font-weight: 900;
+  letter-spacing: 1px;
+  font-style: italic;
+}
+.logo {
+  width: 12px;
+  height: 35px;
+  color: transparent;
+  background: linear-gradient(#fa5a78, #b42d51);
+  clip-path: polygon(0 0, 100% 0, 80% 80%, 0 100%);
+}
+.brand-light {
+  font-style: normal;
+  font-size: 9px;
+  color: #879db5;
+}
+.brand-light b {
+  font-size: 18px;
+  color: #ff5d7c;
+}
+.header-right .saved {
+  font-size: 10px;
+  color: #91c3ac;
+}
+.quiet {
+  font-size: 11px;
+  color: #b4c4d6;
+}
+main {
+  max-width: 1580px;
+  padding: 25px 26px 16px;
+}
+.heading {
+  margin-bottom: 20px;
+}
+.heading h1 {
+  font-size: 23px;
+  margin: 9px 0;
+}
+.eyebrow {
+  color: #78b7d4;
+  font-size: 8px;
+  letter-spacing: 2px;
+}
+.heading p {
+  font-size: 10px;
+  color: #849bb1;
+}
+.day {
+  width: 130px;
+}
+.day strong {
+  font-size: 22px;
+}
+.day-track i {
+  height: 3px;
+}
+.day-track i.done {
+  background: #f65a78;
+}
+.layout {
+  grid-template-columns: 170px minmax(0, 1fr) 282px;
+  gap: 14px;
+  align-items: start;
+}
+.layout.studio-report {
+  grid-template-columns: minmax(0, 1fr) 282px;
+}
+.workspace,
+.profile,
+.chat {
+  background: linear-gradient(135deg, #101c2a, #0b1521);
+  border-color: #304459;
+  border-radius: 7px;
+  box-shadow: 0 7px 20px #03081233;
+}
+.window-bar {
+  height: 31px;
+  background: #132033;
+  border-color: #293c50;
+  font-size: 8px;
+  padding: 0 12px;
+}
+.window-bar small {
+  font-size: 8px;
+}
+.window-icons {
+  font-size: 8px;
+  color: #7690a8;
+}
+.dot {
+  background: #f95b79;
+  width: 6px;
+  height: 6px;
+}
+.game,
+.game.desktop {
+  padding: 9px 9px 0;
+  background: none;
+  border-bottom: 0;
+}
+.game-top {
+  margin: 0 2px 9px;
+  font-size: 8px;
+}
+.map {
+  color: #a5bfd3;
+}
+.map small {
+  font-size: 7px;
+  color: #6e8ca3;
+}
+.live-badge {
+  font-size: 8px;
+  color: #fa748d;
+}
+.offline {
+  font-size: 8px;
+}
+.desktop .fps-scene {
+  border: 1px solid #465368;
+  border-bottom: 1px solid #465368;
+  box-shadow: 0 0 0 3px #090f19;
+}
+.map-rail {
+  background: #0e1a26b8;
+  border: 1px solid #2a4056;
+  border-radius: 7px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.rail-heading b {
+  font-size: 12px;
+  display: block;
+}
+.rail-heading small {
+  font-size: 6px;
+  letter-spacing: 1px;
+  color: #7090a9;
+  display: block;
+  margin-top: 4px;
+}
+.map-card {
+  position: relative;
+  display: block;
+  padding: 0;
+  border: 1px solid #314b60;
+  border-radius: 6px;
+  overflow: hidden;
+  color: #ebf2fa;
+  text-align: left;
+  background: #111f2e;
+  aspect-ratio: 1.12;
+  flex-shrink: 0;
+}
+.map-thumbnail {
+  position: absolute;
+  inset: 0;
+  background-size: auto 300%;
+  background-repeat: no-repeat;
+  transition: transform 0.5s;
+  filter: saturate(0.8);
+}
+.map-card:hover:not(:disabled) .map-thumbnail {
+  transform: scale(1.05);
+}
+.map-card.selected {
+  border-color: #73cbdd;
+  box-shadow: 0 0 0 1px #5fa4b74a;
+}
+.map-card.selected .map-thumbnail {
+  filter: saturate(1.05);
+}
+.map-card:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+.map-card.selected:disabled {
+  opacity: 1;
+}
+.map-card:after {
+  content: '';
+  position: absolute;
+  inset: 25% 0 0;
+  background: linear-gradient(transparent, #0c1827f0);
+  pointer-events: none;
+}
+.map-number {
+  position: absolute;
+  bottom: 37px;
+  left: 10px;
+  z-index: 1;
+  font-size: 17px;
+  color: #fff;
+  font-weight: 700;
+  font-family: system-ui;
+  opacity: 0.7;
+}
+.map-card-copy {
+  position: absolute;
+  left: 10px;
+  right: 8px;
+  bottom: 10px;
+  z-index: 1;
+}
+.map-card-copy b {
+  display: block;
+  font-size: 12px;
+  color: #c8dcf8;
+}
+.map-card-copy small {
+  display: block;
+  font-size: 7px;
+  font-weight: 400;
+  color: #b0c0ce;
+  line-height: 1.7;
+  margin-top: 4px;
+}
+.map-check {
+  position: absolute;
+  top: 7px;
+  right: 7px;
+  border-radius: 3px;
+  background: #102c42c4;
+  color: #95e8ed;
+  font-size: 7px;
+  padding: 4px 6px;
+  z-index: 1;
+}
+.map-rail > p {
+  font-size: 8px;
+  color: #7d99b0;
+  margin: 0;
+  line-height: 1.8;
+}
+.rail-season {
+  padding: 14px 5px 6px;
+  border-top: 1px solid #294154;
+  text-align: center;
+}
+.rail-season > span {
+  display: block;
+  font-size: 7px;
+  letter-spacing: 2px;
+  color: #ef7d95;
+}
+.rail-season > b {
+  display: block;
+  font-size: 12px;
+  margin-top: 8px;
+}
+.rail-season > small {
+  display: block;
+  font-size: 7px;
+  color: #6e8aa1;
+  margin-top: 5px;
+}
+.event-panel {
+  padding: 14px 10px;
+}
+.round-steps {
+  margin-bottom: 10px;
+  gap: 6px;
+}
+.round-steps span {
+  font-size: 8px;
+  padding-bottom: 7px;
+}
+.round-steps .current {
+  color: #86d6e8;
+  border-color: #82dcec;
+}
+.round-steps .complete {
+  color: #80a8b8;
+  border-color: #3d6b83;
+}
+.match-resources {
+  display: flex;
+  justify-content: space-between;
+  background: #0a1521;
+  border: 1px solid #253d53;
+  padding: 9px 10px;
+  margin-bottom: 12px;
+  font-size: 8px;
+  border-radius: 4px;
+}
+.match-resources span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.match-resources b {
+  font-size: 9px;
+  margin: 0;
+}
+.event-panel .section-title {
+  font-size: 10px;
+}
+.event-panel .section-title small {
+  font-size: 8px;
+}
+.event-panel h2 {
+  font-size: 16px;
+  margin: 12px 0 6px;
+}
+.event-panel > p {
+  font-size: 10px;
+  line-height: 1.8;
+  margin: 6px 0 11px;
+}
+.tactical-cards {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 12px;
+}
+.strategy-choices.tactical-cards > button {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  min-height: 170px;
+  border-radius: 6px;
+  padding: 0 10px 12px;
+  background: #112639;
+  border: 1px solid #3d6279;
+  isolation: isolate;
+}
+.strategy-choices.tactical-cards > button:hover:not(:disabled),
+.strategy-choices.tactical-cards > button:focus-visible {
+  border-color: #83e8f0;
+  box-shadow:
+    0 0 0 1px #75d9e273,
+    0 0 15px #61bbd429;
+  transform: translateY(-2px);
+}
+.tactic-art {
+  position: relative;
+  flex-shrink: 0;
+  width: calc(100% + 20px);
+  height: 77px;
+  margin: 0 -10px 8px;
+  background-size: auto 300%;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+  display: block !important;
+  overflow: hidden;
+}
+.tactic-art:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(transparent 10%, #0c2133 100%);
+}
+.tactic-glyph {
+  position: absolute;
+  left: 38%;
+  top: 4px;
+  font-size: 48px;
+  font-weight: 400;
+  line-height: 1;
+  text-shadow: 0 0 15px currentColor;
+  z-index: 1;
+  color: #8bdeef;
+}
+.tactic-art-name {
+  position: absolute;
+  bottom: 6px;
+  left: 10px;
+  font-size: 8px;
+  color: #abdce8;
+  z-index: 1;
+  letter-spacing: 1px;
+}
+.tactic-smoke .tactic-glyph {
+  color: #bc91ff;
+  width: 65px;
+  height: 45px;
+  background: radial-gradient(ellipse, #b99bff9c, #8065e23b 60%, transparent);
+  border-radius: 50%;
+  font-size: 37px;
+}
+.tactic-dash .tactic-art:before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(125deg, transparent, #e15d6e66);
+  z-index: 1;
+}
+.tactic-dash .tactic-glyph {
+  color: #ff98ab;
+}
+.tactic-retreat .tactic-glyph {
+  color: #9de3ca;
+}
+.tactic-card-title {
+  display: flex;
+  align-items: flex-start !important;
+  justify-content: space-between;
+  width: 100%;
+  gap: 5px !important;
+  flex: 1;
+}
+.strategy-choices.tactical-cards b {
+  font-size: 12px;
+  line-height: 1.5;
+}
+.strategy-choices.tactical-cards strong {
+  font-size: 18px;
+  line-height: 1.1;
+}
+.strategy-choices.tactical-cards strong small {
+  display: block;
+  font-size: 7px;
+  color: #8fa8ba;
+  margin-top: 5px;
+}
+.strategy-choices.tactical-cards button > small {
+  font-size: 8px;
+  line-height: 1.9;
+  color: #a1b9c9;
+  margin-top: 9px;
+}
+.strategy-choices.tactical-cards em {
+  font-size: 8px;
+  line-height: 1.8;
+}
+.strategy-choices.tactical-cards > button:disabled {
+  opacity: 0.46;
+}
+.strategy-choices.interaction {
+  gap: 8px;
+}
+.strategy-choices.interaction button {
+  background: #12273a;
+  border-color: #31506b;
+  padding: 14px;
+  min-height: 70px;
+}
+.strategy-choices.interaction b {
+  font-size: 11px;
+}
+.strategy-choices.interaction small {
+  font-size: 9px;
+}
+.challenge-active {
+  padding: 10px;
+  margin-bottom: 12px;
+  background: #30283ae0;
+  border-color: #735c6b;
+  font-size: 9px;
+  color: #f2bbcb;
+}
+.challenge-active small {
+  font-size: 8px;
+  color: #bea8b5;
+}
+.challenge-active button {
+  background: #402c39;
+  color: #edb9c9;
+  border-color: #735263;
+  font-size: 8px;
+  min-height: 36px;
+}
+.round-result {
+  padding: 11px;
+  margin-bottom: 14px;
+}
+.round-result b {
+  font-size: 14px;
+}
+.round-result span {
+  font-size: 9px;
+}
+.continue,
+.next-day {
+  background: linear-gradient(110deg, #3585ad, #4a69c5);
+  color: #e4f7ff;
+  font-size: 12px;
+}
+.interaction-done {
+  font-size: 10px;
+  color: #8edbd0;
+}
+.profile {
+  padding: 16px;
+}
+.profile-label {
+  font-size: 11px;
+}
+.profile-label > span {
+  font-size: 7px;
+  color: #86a9bf;
+}
+.identity {
+  margin: 18px 0;
+  gap: 11px;
+}
+.identity .avatar {
+  padding: 0;
+  width: 47px;
+  height: 53px;
+  overflow: hidden;
+  background: #1c2f49;
+  border: 1px solid #6e91b1;
+  border-radius: 4px;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px #b5639620;
+}
+.avatar .agent-portrait {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.identity h2 {
+  font-size: 15px;
+  white-space: nowrap;
+}
+.identity small {
+  font-size: 8px;
+  color: #809cb2;
+}
+.profile-live {
+  display: inline-block;
+  background: #b93456;
+  color: #ffe9ef;
+  padding: 3px 5px;
+  font-size: 8px;
+  border-radius: 3px;
+  margin-left: 4px;
+  vertical-align: middle;
+}
+.status-light {
+  width: 6px;
+  height: 6px;
+  background: #9ee678;
+  flex-shrink: 0;
+}
+.stats {
+  padding-bottom: 14px;
+  gap: 12px;
+}
+.stats strong {
+  font-size: 22px;
+}
+.stats small {
+  font-size: 8px;
+  color: #85a0b7;
+}
+.stats em {
+  font-size: 9px;
+}
+.rank {
+  margin: 12px 0 14px;
+  gap: 9px;
+}
+.rank > span {
+  font-size: 31px;
+  color: #88d6ca;
+}
+.rank b {
+  font-size: 12px;
+}
+.rank div small {
+  font-size: 8px;
+}
+.rank > small {
+  font-size: 9px;
+}
+.meter-label {
+  font-size: 9px;
+  margin-top: 11px;
+}
+.meter-label b {
+  font-size: 8px;
+}
+.meter {
+  height: 3px;
+  margin-top: 7px;
+}
+.meter i {
+  background: #8cd8ca;
+}
+.energy i {
+  background: #6b9ed3;
+}
+.live-metrics {
+  gap: 12px;
+  padding-top: 12px;
+  margin-top: 16px;
+}
+.live-metrics small {
+  font-size: 8px;
+}
+.live-metrics strong {
+  font-size: 18px;
+  margin-top: 5px;
+}
+.live-metrics em {
+  font-size: 7px;
+}
+.chat {
+  padding: 14px;
+  margin-top: 12px;
+}
+.chat > .section-title {
+  font-size: 11px;
+}
+.chat > .section-title small {
+  font-size: 8px;
+}
+.chat-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid #263f55;
+  margin-top: 9px;
+  padding-bottom: 7px;
+}
+.chat-tabs button {
+  border: 0;
+  background: #172a3e;
+  color: #8ba7bb;
+  border-radius: 3px;
+  font-size: 8px;
+  padding: 7px 6px;
+  min-height: 28px;
+  flex: 1;
+}
+.chat-tabs button[aria-pressed='true'] {
+  background: #26374a;
+  color: #f2c0cc;
+}
+.live-chat {
+  height: 274px;
+  margin: 9px 0 12px;
+  justify-content: flex-end;
+  gap: 0;
+}
+.messages.live-chat p {
+  display: block;
+  background: none;
+  border: 0;
+  padding: 3px 0;
+  border-radius: 0;
+  font-size: 10px;
+  margin: 3px 0;
+  line-height: 1.9;
+  color: #d8e5ee;
+  flex-shrink: 0;
+}
+.messages.live-chat p span {
+  font-size: 9px;
+  color: #88d3c1;
+  margin-right: 4px;
+}
+.messages.live-chat p:nth-child(4n + 1) span {
+  color: #b49ce1;
+}
+.messages.live-chat p:nth-child(4n + 2) span {
+  color: #86b9e5;
+}
+.messages.live-chat p:nth-child(4n + 3) span {
+  color: #e4b67c;
+}
+.viewer-icon {
+  display: inline-grid;
+  width: 16px;
+  height: 16px;
+  place-items: center;
+  border-radius: 50%;
+  font-style: normal;
+  font-size: 8px;
+  color: #d4e2eb;
+  background: hsl(var(--viewer-hue) 25% 26%);
+  border: 1px solid hsl(var(--viewer-hue) 35% 58%);
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.messages.live-chat .gift {
+  color: #e9c98c;
+  padding: 5px 0;
+}
+.messages.live-chat .follow {
+  color: #a4ddb9;
+  padding: 5px 0;
+}
+.messages.live-chat .challenge {
+  color: #c9b9e3;
+}
+.chat-compose {
+  display: flex;
+  gap: 5px;
+  background: #172739;
+  border: 1px solid #355069;
+  border-radius: 4px;
+  padding: 4px;
+}
+.chat-compose input {
+  width: 0;
+  flex: 1;
+  font: inherit;
+  font-size: 9px;
+  padding: 5px;
+  border: 0;
+  outline: none;
+  background: none;
+  color: #d8e9f3;
+  min-width: 0;
+}
+.chat-compose:focus-within {
+  border-color: #7dbacf;
+}
+.chat-compose input::placeholder {
+  color: #7391a8;
+}
+.chat-compose button {
+  font-size: 18px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  min-height: 32px;
+  border: 0;
+  border-radius: 3px;
+  background: #415c77;
+  color: #e3edf6;
+}
+.chat-compose button:disabled {
+  opacity: 0.3;
+}
+.chat-empty {
+  padding: 16px 0;
+}
+.chat-empty small {
+  font-size: 8px;
+}
+.data-button {
+  margin-top: 12px;
+  padding: 12px;
+  font-size: 10px;
+  background: #122237;
+  border-color: #2d4860;
+  color: #98c8df;
+}
+.tip {
+  padding: 2px 6px;
+}
+.tip p {
+  font-size: 8px;
+}
+.tip > span {
+  color: #6dbdd6;
+}
+.notice {
+  background: #172d39;
+  border-color: #34546a;
+  color: #b2d4e0;
+  font-size: 10px;
+  margin-top: 15px;
+}
+.desk-actions {
+  padding: 18px 13px;
+}
+.desk-actions .section-title {
+  font-size: 10px;
+}
+.desk-actions .section-title small {
+  font-size: 8px;
+}
+.prep-actions {
+  gap: 7px;
+}
+.prep-actions button {
+  font-size: 10px;
+  min-height: 63px;
+  background: #16273a;
+  border-color: #314c65;
+}
+.prep-actions small {
+  font-size: 8px;
+}
+.style-heading {
+  margin-top: 19px;
+}
+.style-options {
+  gap: 7px;
+}
+.style-options button {
+  padding: 11px 9px;
+  background: #14273a;
+  border-color: #304961;
+}
+.style-options button.selected {
+  background: #263240;
+  border-color: #ea6b8b;
+  color: #f2ceda;
+}
+.style-options b {
+  font-size: 11px;
+}
+.style-options small {
+  font-size: 8px;
+}
+.start-stream {
+  padding: 14px;
+  margin-top: 15px;
+  font-size: 13px;
+  background: linear-gradient(110deg, #e34263, #b23964);
+  border-color: #ed718e;
+}
+.start-stream span {
+  font-size: 8px;
+}
+.hint {
+  font-size: 8px !important;
+  line-height: 1.8;
+}
+.report {
+  padding: 30px 22px;
+}
+.report h2 {
+  font-size: 24px;
+}
+.best-clip {
+  background: linear-gradient(125deg, #1e3542, #162039);
+  border-color: #3e596e;
+}
+.visual-showcase {
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 14px;
+  margin-top: 14px;
+}
+.equipment-showcase,
+.effects-showcase {
+  border: 1px solid #2c455e;
+  border-radius: 6px;
+  background: linear-gradient(135deg, #101d2c, #0b1420);
+  padding: 13px;
+}
+.showcase-title b {
+  display: block;
+  font-size: 11px;
+  color: #cad9e7;
+}
+.showcase-title small {
+  display: block;
+  font-size: 8px;
+  color: #7592a8;
+  margin-top: 5px;
+}
+.weapon-shelf {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+.weapon-shelf > div {
+  position: relative;
+  min-width: 0;
+  border: 1px solid #2f465d;
+  border-radius: 4px;
+  background: linear-gradient(140deg, #16293c, #101927);
+  padding: 4px 10px 10px;
+  overflow: hidden;
+}
+.weapon-shelf .weapon-model {
+  width: 100%;
+  height: 88px;
+  display: block;
+  transform: translate(-12%, -10%) scale(1.3);
+}
+.weapon-shelf b {
+  display: block;
+  font-size: 10px;
+  color: #d8e4ec;
+}
+.weapon-shelf small {
+  display: block;
+  font-size: 8px;
+  margin-top: 5px;
+  color: #8299ae;
+}
+.effect-legend {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
+  margin-top: 9px;
+}
+.effect-legend > div {
+  min-width: 0;
+}
+.effect-legend i {
+  display: grid;
+  place-items: center;
+  height: 70px;
+  background: radial-gradient(ellipse at center, #5f50aa99, #282c4c 60%, #17253a);
+  border: 1px solid #46657b;
+  border-radius: 4px;
+  font-style: normal;
+  font-size: 40px;
+  color: #c3a5fd;
+  text-shadow: 0 0 20px currentColor;
+}
+.effect-legend .legend-scan i {
+  color: #87e6eb;
+  background: radial-gradient(ellipse, #44677f, #172b40);
+}
+.effect-legend .legend-flash i {
+  color: #c4f4ff;
+  background: radial-gradient(ellipse, #538c9d, #152a42);
+}
+.effect-legend .legend-dash i {
+  color: #8bbcff;
+  background: linear-gradient(135deg, #26395c, #12273b);
+}
+.effect-legend b {
+  display: block;
+  font-size: 10px;
+  margin-top: 8px;
+  color: #c7dae8;
+}
+.effect-legend small {
+  display: block;
+  font-size: 7px;
+  color: #7892a9;
+  line-height: 1.7;
+  margin-top: 5px;
+}
+footer {
+  margin-top: 22px;
+  padding-top: 14px;
+  font-size: 8px;
+  border-color: #263b50;
+}
+footer b {
+  color: #f17896;
+}
+@media (min-width: 1450px) {
+  main {
+    padding-top: 27px;
+  }
+  .fps-scene.v05-scene {
+    aspect-ratio: 16/9;
+  }
+  .map-card {
+    aspect-ratio: 1.02;
+  }
+  .map-rail {
+    gap: 12px;
+  }
+  .live-chat {
+    height: 297px;
+  }
+}
+@media (max-width: 1200px) and (min-width: 721px) {
+  .layout {
+    grid-template-columns: 135px minmax(0, 1fr) 240px;
+    gap: 10px;
+  }
+  .layout.studio-report {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  main {
+    padding: 22px 18px;
+  }
+  .map-rail {
+    padding: 8px;
+  }
+  .map-card {
+    aspect-ratio: 0.8;
+  }
+  .map-card-copy b {
+    font-size: 10px;
+  }
+  .map-card-copy small {
+    font-size: 7px;
+  }
+  .map-number {
+    bottom: 44px;
+    font-size: 14px;
+  }
+  .profile {
+    padding: 13px;
+  }
+  .identity {
+    gap: 7px;
+  }
+  .identity h2 {
+    font-size: 12px;
+  }
+  .identity small {
+    font-size: 7px;
+  }
+  .profile-live {
+    font-size: 6px;
+    margin-left: 1px;
+  }
+  .identity .avatar {
+    width: 40px;
+    height: 45px;
+  }
+  .stats strong {
+    font-size: 19px;
+  }
+  .tactical-cards {
+    gap: 6px;
+  }
+  .strategy-choices.tactical-cards > button {
+    padding: 0 7px 10px;
+  }
+  .tactic-art {
+    width: calc(100% + 14px);
+    margin-left: -7px;
+    margin-right: -7px;
+  }
+  .strategy-choices.tactical-cards b {
+    font-size: 10px;
+  }
+  .strategy-choices.tactical-cards strong {
+    font-size: 15px;
+  }
+  .strategy-choices.tactical-cards strong small {
+    font-size: 6px;
+  }
+  .strategy-choices.tactical-cards button > small {
+    font-size: 7px;
+  }
+  .match-resources {
+    gap: 4px;
+  }
+  .match-resources span {
+    display: block;
+  }
+  .match-resources b {
+    display: block;
+    font-size: 9px;
+    margin-top: 4px;
+  }
+  .live-chat {
+    height: 257px;
+  }
+  .visual-showcase {
+    gap: 10px;
+  }
+  .weapon-shelf .weapon-model {
+    height: 71px;
+  }
+}
+@media (max-width: 960px) and (min-width: 721px) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  .map-rail {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: 85px repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .rail-heading {
+    align-self: center;
+  }
+  .map-card {
+    aspect-ratio: 3.2;
+  }
+  .map-card-copy small,
+  .map-number,
+  .map-rail > p,
+  .rail-season {
+    display: none;
+  }
+  .map-card-copy {
+    bottom: 8px;
+  }
+  .map-card-copy b {
+    font-size: 11px;
+  }
+  .map-check {
+    top: 4px;
+    right: 4px;
+    padding: 3px;
+    font-size: 6px;
+  }
+  .layout.studio-report {
+    grid-template-columns: minmax(0, 1fr) 240px;
+  }
+  .tactical-cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .event-panel h2 {
+    font-size: 15px;
+  }
+}
+@media (max-width: 720px) {
+  header {
+    height: 59px;
+    padding: 0 14px;
+  }
+  .brand {
+    font-size: 17px;
+    gap: 9px;
+  }
+  .brand-light {
+    display: inline;
+    font-size: 0;
+    letter-spacing: 0;
+  }
+  .brand-light b {
+    font-size: 13px;
+    margin-left: 0;
+  }
+  .logo {
+    width: 9px;
+    height: 27px;
+  }
+  .quiet {
+    font-size: 10px;
+  }
+  .heading {
+    gap: 13px;
+    margin-bottom: 16px;
+  }
+  .heading h1 {
+    font-size: 20px;
+    line-height: 1.6;
+  }
+  .heading p {
+    font-size: 9px;
+    line-height: 1.9;
+  }
+  .eyebrow {
+    font-size: 6px;
+    letter-spacing: 1px;
+  }
+  .day {
+    min-width: 84px;
+    width: 84px;
+  }
+  .day strong {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+  .day strong em {
+    font-size: 11px;
+  }
+  .day small {
+    font-size: 8px;
+  }
+  main {
+    padding: 22px 12px 14px;
+  }
+  .layout,
+  .layout.studio-report {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+  }
+  .map-rail {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    padding: 7px;
+    gap: 6px;
+  }
+  .rail-heading {
+    grid-column: 1/-1;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 3px 5px;
+  }
+  .rail-heading b {
+    font-size: 10px;
+  }
+  .rail-heading small {
+    font-size: 6px;
+    margin-top: 0;
+  }
+  .map-card {
+    aspect-ratio: 1.1;
+  }
+  .map-card-copy {
+    left: 7px;
+    bottom: 8px;
+  }
+  .map-card-copy b {
+    font-size: 10px;
+  }
+  .map-card-copy small {
+    display: none;
+  }
+  .map-number {
+    font-size: 12px;
+    left: 7px;
+    bottom: 28px;
+  }
+  .map-check {
+    font-size: 6px;
+    top: 4px;
+    right: 4px;
+    padding: 3px;
+  }
+  .map-rail > p {
+    grid-column: 1/-1;
+    font-size: 7px;
+    padding: 1px 3px;
+  }
+  .rail-season {
+    display: none;
+  }
+  .window-bar {
+    height: 29px;
+  }
+  .game,
+  .game.desktop {
+    padding: 7px 7px 0;
+  }
+  .game-top {
+    font-size: 6px;
+    margin-bottom: 7px;
+  }
+  .game-top .map small {
+    display: none;
+  }
+  .game-top .live-badge {
+    font-size: 7px;
+  }
+  .tactical-cards {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 8px;
+  }
+  .strategy-choices.tactical-cards > button {
+    min-height: 103px;
+    padding: 12px 12px 10px 91px;
+    display: block;
+    overflow: hidden;
+  }
+  .tactic-art {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 78px;
+    height: auto;
+    margin: 0;
+    background-size: auto 300%;
+    border-right: 1px solid #30536a;
+    opacity: 0.7;
+  }
+  .tactic-art:after {
+    background: linear-gradient(90deg, #0c213310, #0c213380);
+  }
+  .tactic-glyph {
+    font-size: 35px;
+    left: 22%;
+    top: 18px;
+  }
+  .tactic-art-name {
+    font-size: 6px;
+    left: 6px;
+    bottom: 8px;
+  }
+  .tactic-smoke .tactic-glyph {
+    font-size: 30px;
+    width: 45px;
+    height: 40px;
+    left: 20%;
+  }
+  .tactic-card-title {
+    gap: 7px !important;
+  }
+  .strategy-choices.tactical-cards b {
+    font-size: 12px;
+  }
+  .strategy-choices.tactical-cards strong {
+    font-size: 18px;
+  }
+  .strategy-choices.tactical-cards strong small {
+    font-size: 7px;
+  }
+  .strategy-choices.tactical-cards button > small {
+    font-size: 9px;
+    line-height: 1.9;
+    margin-top: 9px;
+  }
+  .strategy-choices.tactical-cards em {
+    font-size: 8px;
+  }
+  .event-panel {
+    padding: 14px 10px;
+  }
+  .round-steps span {
+    font-size: 7px;
+  }
+  .match-resources {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 5px;
+    padding: 9px 7px;
+    font-size: 7px;
+  }
+  .match-resources span {
+    display: block;
+  }
+  .match-resources b {
+    display: block;
+    margin-top: 4px;
+    font-size: 9px;
+  }
+  .event-panel .section-title {
+    font-size: 9px;
+    gap: 5px;
+  }
+  .event-panel .section-title small {
+    font-size: 7px;
+  }
+  .event-panel h2 {
+    font-size: 16px;
+  }
+  .event-panel > p {
+    font-size: 10px;
+  }
+  .challenge-active {
+    font-size: 9px;
+    gap: 8px;
+  }
+  .challenge-active small {
+    font-size: 8px;
+    line-height: 1.9;
+  }
+  .challenge-active button {
+    font-size: 9px;
+    min-height: 44px;
+  }
+  .prep-actions {
+    grid-template-columns: 1fr 1fr;
+  }
+  .prep-actions button {
+    font-size: 12px;
+    min-height: 69px;
+  }
+  .prep-actions small {
+    font-size: 9px;
+  }
+  .style-options {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
+  }
+  .style-options b {
+    font-size: 12px;
+  }
+  .style-options small {
+    font-size: 9px;
+    line-height: 1.8;
+  }
+  .start-stream {
+    font-size: 13px;
+    min-height: 52px;
+  }
+  .start-stream span {
+    font-size: 8px;
+    max-width: 50%;
+    line-height: 1.8;
+  }
+  .profile {
+    padding: 17px;
+  }
+  .identity h2 {
+    font-size: 16px;
+  }
+  .identity small {
+    font-size: 9px;
+  }
+  .identity .avatar {
+    width: 47px;
+    height: 53px;
+  }
+  .profile-live {
+    font-size: 9px;
+  }
+  .stats strong {
+    font-size: 25px;
+  }
+  .stats small {
+    font-size: 9px;
+  }
+  .meter-label {
+    font-size: 10px;
+    margin-top: 15px;
+  }
+  .meter-label b {
+    font-size: 9px;
+  }
+  .meter {
+    height: 4px;
+  }
+  .live-metrics {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  .live-metrics small {
+    font-size: 8px;
+  }
+  .live-metrics strong {
+    font-size: 19px;
+  }
+  .live-metrics em {
+    font-size: 6px;
+  }
+  .chat {
+    padding: 16px;
+  }
+  .chat-tabs button {
+    min-height: 38px;
+    font-size: 10px;
+  }
+  .live-chat {
+    height: 260px;
+  }
+  .messages.live-chat p {
+    font-size: 11px;
+    line-height: 2;
+  }
+  .messages.live-chat p span {
+    font-size: 10px;
+  }
+  .viewer-icon {
+    width: 19px;
+    height: 19px;
+    font-size: 9px;
+  }
+  .chat-compose input {
+    font-size: 11px;
+  }
+  .chat-compose button {
+    width: 40px;
+    min-height: 40px;
+  }
+  .data-button {
+    font-size: 11px;
+    min-height: 44px;
+  }
+  .tip p {
+    font-size: 9px;
+  }
+  .visual-showcase {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+  }
+  .weapon-shelf {
+    gap: 6px;
+  }
+  .weapon-shelf > div {
+    padding: 3px 6px 8px;
+  }
+  .weapon-shelf .weapon-model {
+    height: 67px;
+    transform: translate(-12%, -8%) scale(1.3);
+  }
+  .weapon-shelf b {
+    font-size: 9px;
+  }
+  .weapon-shelf small {
+    font-size: 7px;
+  }
+  .effect-legend {
+    gap: 6px;
+  }
+  .effect-legend i {
+    height: 57px;
+    font-size: 34px;
+  }
+  .effect-legend b {
+    font-size: 9px;
+  }
+  .effect-legend small {
+    font-size: 7px;
+  }
+  .showcase-title b {
+    font-size: 11px;
+  }
+  .notice {
+    font-size: 10px;
+    line-height: 1.9;
+  }
+  .report {
+    padding: 25px 14px;
+  }
+  .report h2 {
+    font-size: 22px;
+  }
+  .clip-buttons button {
+    min-height: 44px;
+  }
+  .best-clip p {
+    font-size: 9px;
+  }
+  .report .round-history small {
+    font-size: 9px;
+  }
+  .strategy-choices.interaction {
+    grid-template-columns: 1fr;
+  }
+  .strategy-choices.interaction b {
+    font-size: 12px;
+  }
+  .strategy-choices.interaction small {
+    font-size: 10px;
+  }
+  .continue,
+  .next-day {
+    min-height: 46px;
+    font-size: 12px;
+  }
+  .hint {
+    font-size: 9px !important;
+  }
+  .chat-compose button:disabled {
+    opacity: 0.4;
+  }
+  .data-modal .close {
+    min-height: 44px;
+  }
+  .audience-row {
+    font-size: 11px;
+  }
+  footer {
+    font-size: 7px;
+    gap: 10px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .map-thumbnail {
+    transition: none;
+  }
+}
+/* Keep the primary decision readable at native desktop resolution. */
+@media (min-width: 1201px) {
+  .strategy-choices.tactical-cards b {
+    font-size: 14px;
+  }
+  .strategy-choices.tactical-cards strong {
+    font-size: 21px;
+  }
+  .strategy-choices.tactical-cards button > small {
+    font-size: 10px;
+    line-height: 1.8;
+  }
+  .strategy-choices.tactical-cards > button {
+    min-height: 192px;
+  }
+  .tactic-art {
+    height: 83px;
+  }
+  .event-panel h2 {
+    font-size: 18px;
+  }
+  .event-panel > p {
+    font-size: 11px;
+  }
+  .messages.live-chat p {
+    font-size: 11px;
+  }
+  .messages.live-chat p span {
+    font-size: 10px;
+  }
+  .stats small {
+    font-size: 10px;
+  }
+  .profile-label {
+    font-size: 12px;
+  }
+  .chat-compose input {
+    font-size: 10px;
+  }
+}
+.tactic-art {
+  background-size: 100% 300%;
+}

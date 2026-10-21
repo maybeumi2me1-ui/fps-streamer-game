@@ -27,6 +27,9 @@ function bounded(v: unknown, lo: number, hi: number, otherwise: number) {
 export function migrate(raw: unknown): Save {
   if (!obj(raw)) throw new Error('存档格式无效')
   const s = fresh()
+  s.mapId = ['oldtown', 'transit', 'harbor'].includes(String(raw.mapId))
+    ? (raw.mapId as Save['mapId'])
+    : 'oldtown'
   for (const k of ['day', 'fans', 'money', 'skill', 'energy', 'rank'] as const)
     if (!finite(raw[k])) throw new Error('存档数据不完整')
   s.day = bounded(raw.day, 1, 7, 1)

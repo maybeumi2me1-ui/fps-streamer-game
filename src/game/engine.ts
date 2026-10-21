@@ -4,6 +4,7 @@ import type { Choice, GameEvent, Match, Save, Style, ClipType } from './types'
 export const clamp = (n: number, min: number, max: number) => Math.max(min, Math.min(max, n))
 export const fresh = (): Save => ({
   version: 4,
+  mapId: 'oldtown',
   day: 1,
   fans: 128,
   money: 200,

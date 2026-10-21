@@ -48,12 +48,51 @@ try {
   const click = async (name) => page.getByRole('button', { name, exact: true }).click()
   await page.goto(url)
   await noOverflow()
+  assert.equal(await page.locator('.map-card').count(), 3)
+  for (const id of ['transit', 'harbor', 'oldtown']) {
+    await page
+      .locator(`.map-card`)
+      .filter({
+        has: page.locator(`.map-card-copy b`, {
+          hasText: id === 'transit' ? '蓝隙通道' : id === 'harbor' ? '晴湾交火区' : '曦光旧城',
+        }),
+      })
+      .click()
+    await page.reload()
+    assert.equal((await saved()).mapId, id)
+    assert.equal(await page.locator('.v05-scene').getAttribute('data-map'), id)
+    await noOverflow()
+  }
+  const asset = await page.request.get(new URL('art/tactical-maps.webp', url).href)
+  assert.equal(asset.status(), 200)
+  assert.ok((await asset.body()).length < 500 * 1024, 'Shared original atlas stays under 500 KB')
   await page.locator('.prep-actions button').nth(0).click()
   await page.locator('.prep-actions button').nth(1).click()
   await page.locator('.prep-actions button').nth(2).click()
   await page.locator('.prep-actions button').nth(3).click()
   await page.getByRole('button', { name: '娱乐型' }).click()
   await page.locator('.start-stream').click()
+  assert.ok(await page.locator('.map-card').first().isDisabled())
+  await page.getByRole('textbox', { name: '发送主播弹幕' }).fill('今天继续冲分！')
+  await page.getByRole('button', { name: '发送弹幕', exact: true }).click()
+  assert.ok((await saved()).match.feed.some((line) => line.text === '今天继续冲分！'))
+  for (const [selector, effect] of [
+    ['.tactic-scan', 'scan'],
+    ['.tactic-dash', 'dash'],
+    ['.tactic-smoke', 'smoke'],
+  ]) {
+    await page.locator(selector).first().hover()
+    assert.equal(await page.locator('.v05-scene').getAttribute('data-effect'), effect)
+  }
+  await page
+    .getByRole('group', { name: '弹幕筛选' })
+    .getByRole('button', { name: '♛ 礼物', exact: true })
+    .click()
+  await page
+    .getByRole('group', { name: '弹幕筛选' })
+    .getByRole('button', { name: '直播弹幕', exact: true })
+    .click()
+  assert.equal(await page.locator('.tactic-art').count(), 3)
   const first = await saved()
   assert.equal(first.phase, 'live')
   assert.equal(first.match.style, 'entertainment')
@@ -62,7 +101,11 @@ try {
   assert.ok(chatted.match.chatCursor > first.match.chatCursor)
   assert.ok(chatted.match.chatCursor <= first.match.chatCursor + 2, 'Only one chat timeout chain')
   mkdirSync('artifacts', { recursive: true })
-  await page.screenshot({ path: 'artifacts/v04-desktop-live.png', fullPage: true })
+  await page.locator('.tactic-smoke').first().hover()
+  await page.waitForTimeout(650)
+  assert.equal(await page.locator('.smoke-dome').count(), 1)
+  await page.screenshot({ path: 'artifacts/v05-desktop-live.png', fullPage: true })
+  await page.mouse.move(0, 0)
   for (let day = 1; day <= 7; day++) {
     for (let stage = 0; stage < 5; stage++) {
       if (day === 1 && stage === 0) {
@@ -73,7 +116,7 @@ try {
       if (day === 1 && stage === 1) {
         await page.setViewportSize({ width: 390, height: 844 })
         await noOverflow()
-        await page.screenshot({ path: 'artifacts/v04-mobile-live.png', fullPage: true })
+        await page.screenshot({ path: 'artifacts/v05-mobile-live.png', fullPage: true })
       }
       if (await page.getByRole('button', { name: '放弃挑战', exact: true }).count()) {
         if (
@@ -84,6 +127,15 @@ try {
       await page.locator('.strategy-choices:not(.interaction) button:enabled').first().click()
       const decided = await saved()
       assert.equal(decided.match.results.length, stage + 1)
+      assert.equal(
+        await page.locator('.v05-scene').getAttribute('data-outcome'),
+        decided.match.results.at(-1).tag === 'save'
+          ? 'saved'
+          : decided.match.results.at(-1).won
+            ? 'won'
+            : 'lost',
+      )
+      assert.equal(await page.locator('.round-banner').count(), 1)
       await page.reload()
       assert.equal((await saved()).match.results.length, stage + 1)
       assert.equal(
@@ -125,7 +177,7 @@ try {
   assert.equal(await page.locator('.history-row').count(), 7)
   assert.equal(await page.locator('.audience-row').count(), 8)
   await click('关闭 ×')
-  await page.screenshot({ path: 'artifacts/v04-mobile-report.png', fullPage: true })
+  await page.screenshot({ path: 'artifacts/v05-mobile-report.png', fullPage: true })
   page.once('dialog', (d) => d.accept())
   await click('开启新的主播生涯 →')
   assert.equal((await saved()).day, 1)
@@ -157,7 +209,7 @@ try {
   assert.equal(await page.locator('.start-stream').count(), 1)
   assert.deepEqual(errors, [])
   console.log(
-    'PASS browser: 7 days / 35 ranked rounds and interactions, delayed challenge, timed chat, live+report reload, one-shot choices, clips+promotion, ad fallback, history, reset, legacy migration, corrupt recovery, desktop+390px layout, Pages JS/CSS paths; zero browser/HTTP errors.',
+    'PASS browser: V0.5 maps + persisted selection, original atlas budget, live tactical effects, actual win/loss feedback, player chat, filtering; 7 days / 35 ranked rounds and interactions, delayed challenge, timed chat, live+report reload, one-shot choices, clips+promotion, ad fallback, history, reset, legacy migration, corrupt recovery, desktop+390px layout, Pages JS/CSS paths; zero browser/HTTP errors.',
   )
 } finally {
   if (browser) await browser.close()

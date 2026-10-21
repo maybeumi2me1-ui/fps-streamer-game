@@ -1,0 +1,1101 @@
+/* Original tactical stage. Background atlas is shared by all three environments. */
+.v05-scene {
+  aspect-ratio: 16/9;
+  background: #182833;
+  border: 1px solid #465368;
+  border-radius: 7px;
+  isolation: isolate;
+  contain: layout paint;
+  box-shadow:
+    0 0 0 4px #0a111dcc,
+    0 10px 30px #0005;
+}
+.environment-image {
+  position: absolute;
+  inset: 0;
+  background-size: auto 300%;
+  background-repeat: no-repeat;
+  transition:
+    transform 0.65s cubic-bezier(0.2, 0.65, 0.2, 1),
+    filter 0.5s;
+  will-change: auto;
+}
+.environment-grade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, #0b162a12, transparent 35%, #0d162e1f);
+  pointer-events: none;
+}
+.battle-dash .environment-image {
+  transform: scale(1.06) translateX(-1.2%);
+}
+.battle-retreat .environment-image {
+  transform: scale(1.015) translateX(2%);
+  filter: saturate(0.75);
+}
+.outcome-lost .environment-grade {
+  background: linear-gradient(180deg, #12223814, transparent 50%, #a3244640);
+}
+.clutch-scene .environment-grade {
+  background: linear-gradient(120deg, #20254b10, #58316520);
+}
+.screen-vignette {
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 70px #070f2470;
+  pointer-events: none;
+}
+.weapon-layer {
+  position: absolute;
+  width: 59%;
+  height: auto;
+  aspect-ratio: 3/2;
+  right: -1.5%;
+  bottom: -1%;
+  z-index: 5;
+  pointer-events: none;
+  filter: drop-shadow(-5px 7px 7px #0b142477);
+  transition: transform 0.35s;
+}
+.weapon-layer .weapon-model {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+.weapon-layer.weapon-lowered {
+  transform: translate(8%, 20%) rotate(7deg);
+}
+.weapon-fired .gun-assembly {
+  animation: weapon-kick 0.18s ease-out;
+}
+.weapon-layer .compact-gun {
+  transform: translate(55px, 38px) scale(0.88);
+  transform-origin: 60% 80%;
+}
+.enemy-unit {
+  position: absolute;
+  height: 27%;
+  width: 9%;
+  transform: translate(-50%, -8%);
+  z-index: 2;
+  filter: drop-shadow(0 0 2px #ff6d8580);
+  transition:
+    opacity 0.4s,
+    transform 0.4s;
+}
+.combat-agent {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.combat-agent.scanned {
+  filter: drop-shadow(0 0 3px #6afff7) drop-shadow(0 0 1px #88fff9);
+}
+.combat-agent.down {
+  opacity: 0.6;
+}
+.enemy-unit.eliminated {
+  filter: none;
+}
+.enemy-unit.escaping {
+  opacity: 0.35;
+}
+.second-enemy {
+  left: 64%;
+  top: 44%;
+  height: 24%;
+  width: 8%;
+}
+.enemy-lock {
+  position: absolute;
+  left: 50%;
+  top: -14px;
+  transform: translateX(-50%);
+  font-size: 7px;
+  color: #96ffec;
+  background: #173f4bc9;
+  padding: 3px 6px;
+  white-space: nowrap;
+  border-top: 1px solid #7affeb;
+}
+.allied-squad {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 3;
+}
+.allied-squad .combat-agent {
+  position: absolute;
+  left: 25%;
+  top: 49%;
+  width: 9%;
+  height: 35%;
+  filter: drop-shadow(0 0 3px #65e3ef50);
+}
+.allied-squad .combat-agent + .combat-agent {
+  left: 36%;
+  top: 47%;
+  width: 8%;
+  height: 29%;
+}
+.smoke-dome {
+  position: absolute;
+  left: 47%;
+  top: 38%;
+  width: 31%;
+  height: 37%;
+  border-radius: 55% 60% 18% 25%;
+  background: radial-gradient(ellipse at 30% 27%, #ac86f7a6, #7055bddb 42%, #322468ec 82%);
+  box-shadow:
+    inset 7px 10px 24px #c89bfb50,
+    inset -13px -7px 25px #171b4aaa,
+    0 2px 12px #8b67db40;
+  z-index: 3;
+  overflow: hidden;
+  pointer-events: none;
+  animation: smoke-appear 0.55s ease-out;
+}
+.smoke-dome:before,
+.smoke-dome:after {
+  content: '';
+  position: absolute;
+  inset: 6% -10%;
+  border: 1px solid #ceaffb40;
+  border-radius: 50%;
+  transform: rotate(-23deg);
+  box-shadow: 0 10px 12px #a47cea23;
+}
+.smoke-dome:after {
+  inset: 30% -15% -30%;
+  transform: rotate(20deg);
+}
+.smoke-dome i {
+  position: absolute;
+  width: 70%;
+  height: 60%;
+  background: radial-gradient(ellipse, #c3a3f93b, transparent 65%);
+  top: 5%;
+  left: 3%;
+  animation: smoke-swirl 8s ease-in-out infinite alternate;
+}
+.smoke-dome i:nth-child(2) {
+  left: 30%;
+  top: 35%;
+  animation-delay: -3s;
+}
+.smoke-dome i:nth-child(3) {
+  left: -10%;
+  top: 60%;
+  animation-delay: -5s;
+}
+.smoke-dome span {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 4%;
+  background: #b89cec33;
+  box-shadow: 0 -3px 17px #af92e550;
+}
+.scan-field {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.65;
+  pointer-events: none;
+  animation: scan-in 0.5s ease-out;
+}
+.scan-field g {
+  stroke-width: 2;
+  filter: drop-shadow(0 0 3px #53eced);
+}
+.flash-orb {
+  position: absolute;
+  left: 52%;
+  top: 35%;
+  width: 12%;
+  aspect-ratio: 1;
+  z-index: 4;
+  pointer-events: none;
+}
+.flash-orb:before {
+  content: '';
+  position: absolute;
+  inset: -40%;
+  background: radial-gradient(circle, #f9ffffc7 0, #7feeff70 10%, #7be4ff18 40%, transparent 65%);
+  animation: orb-in 0.5s ease-out;
+}
+.flash-orb i {
+  position: absolute;
+  inset: 15%;
+  border: 1px solid #c6fcff;
+  border-radius: 50%;
+  box-shadow: 0 0 12px #5dcdff;
+}
+.flash-orb span {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 44px;
+  color: #deffff;
+  text-shadow: 0 0 12px #8deaff;
+}
+.dash-trails {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 3;
+}
+.dash-trails i {
+  position: absolute;
+  left: 14%;
+  top: 52%;
+  width: 60%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #89ecffa0, transparent);
+  rotate: -9deg;
+  box-shadow: 0 0 10px #6bdaff;
+  animation: dash-in 0.4s ease-out;
+}
+.dash-trails i:nth-child(2) {
+  top: 63%;
+  left: 10%;
+  width: 70%;
+  height: 2px;
+}
+.dash-trails i:nth-child(3) {
+  top: 73%;
+  left: 2%;
+  width: 80%;
+  height: 4px;
+}
+.dash-trails i:nth-child(4) {
+  left: 45%;
+  top: 44%;
+  width: 35%;
+  rotate: 8deg;
+}
+.retreat-route {
+  position: absolute;
+  left: 21%;
+  top: 66%;
+  color: #a5efdb;
+  font-size: 65px;
+  transform: skewX(-25deg);
+  text-shadow: 0 0 12px #62d7db;
+  opacity: 0.7;
+}
+.retreat-route i {
+  position: absolute;
+  left: -100%;
+  right: -200%;
+  top: 85%;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, #88ddc8, transparent);
+}
+.signal-beacon {
+  position: absolute;
+  top: 57%;
+  left: 49%;
+  width: 30px;
+  height: 40px;
+  z-index: 4;
+  pointer-events: none;
+}
+.signal-beacon span {
+  font-size: 26px;
+  color: #ff9fb2;
+  text-shadow: 0 0 10px #fd5078;
+}
+.signal-beacon i {
+  position: absolute;
+  width: 35px;
+  height: 14px;
+  border: 1px solid #ff738d;
+  border-radius: 50%;
+  top: 20px;
+  box-shadow: 0 0 12px #e85a83;
+  animation: beacon-pulse 2.5s ease-out infinite;
+}
+.bullet-tracer {
+  position: absolute;
+  left: 50%;
+  top: 48%;
+  width: 27%;
+  height: 2px;
+  background: linear-gradient(90deg, #ffad5c, transparent);
+  transform: rotate(13deg);
+  transform-origin: left;
+  box-shadow: 0 0 6px #ffb054;
+  z-index: 6;
+  pointer-events: none;
+}
+.hit-sparks {
+  position: absolute;
+  left: 51%;
+  top: 49%;
+  pointer-events: none;
+  z-index: 6;
+}
+.hit-sparks i {
+  position: absolute;
+  width: 24px;
+  height: 2px;
+  background: #fff0a5;
+  rotate: 35deg;
+  box-shadow: 0 0 4px #ffd78c;
+}
+.hit-sparks i:nth-child(2) {
+  rotate: 100deg;
+  translate: 7px -5px;
+}
+.hit-sparks i:nth-child(3) {
+  rotate: -30deg;
+  translate: -9px 8px;
+}
+.sun-dust {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sun-dust i {
+  position: absolute;
+  width: 2px;
+  height: 2px;
+  border-radius: 50%;
+  background: #f2d9aa88;
+  animation: dust-drift 9s linear infinite;
+}
+.v05-scene .fps-score {
+  z-index: 8;
+  top: 10px;
+  display: grid;
+  grid-template-columns: 70px 33px 60px 33px 70px;
+  filter: drop-shadow(0 2px 3px #0004);
+  font-family: system-ui, sans-serif;
+}
+.v05-scene .fps-score > span {
+  background: #263d59ac;
+  clip-path: polygon(0 0, 80% 0, 100% 50%, 80% 100%, 0 100%);
+  border: 0;
+  padding: 6px 1px;
+  color: #f2f7fd;
+  font-size: 20px;
+}
+.v05-scene .fps-score .team-red {
+  background: #743846b3;
+  clip-path: polygon(20% 0, 100% 0, 100% 100%, 20% 100%, 0 50%);
+}
+.v05-scene .fps-score > b {
+  padding: 10px 0;
+  font-size: 17px;
+  background: #56739d99;
+  clip-path: polygon(0 0, 100% 0, 85% 100%, 15% 100%);
+  border-top: 1px solid #a6cce3;
+}
+.v05-scene .fps-score small {
+  font-size: 8px;
+  background: #101f3350;
+  letter-spacing: 0;
+  border-radius: 0 0 5px 5px;
+  padding: 4px;
+}
+.squad-faces {
+  display: flex;
+  align-items: center;
+  gap: 1px;
+  background: #33566b99;
+  height: 32px;
+  padding: 2px;
+}
+.squad-faces .agent-portrait {
+  height: 29px;
+  width: 22px;
+}
+.squad-faces.enemy-faces {
+  background: #68384699;
+}
+.scene-stream {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+  font-size: 9px;
+  color: #e2e9f0;
+  z-index: 8;
+}
+.scene-stream > span {
+  padding: 6px 8px;
+  background: #122030ad;
+  border-radius: 3px;
+}
+.scene-stream .scene-live {
+  color: #ffe0e6;
+  background: #331d30c9;
+  border-left: 2px solid #ff526f;
+}
+.v05-scene .minimap {
+  z-index: 7;
+  top: 61px;
+  left: 12px;
+  width: 104px;
+  border: none;
+  clip-path: none;
+  background: radial-gradient(circle, #1423345c, #0c1c3066);
+  border-radius: 50%;
+  padding: 6px;
+}
+.v05-scene .minimap svg {
+  width: 100%;
+  height: auto;
+}
+.v05-scene .minimap small {
+  font-size: 8px;
+  margin-top: 3px;
+  text-shadow: 0 1px 3px #000;
+  letter-spacing: 0;
+}
+.v05-scene .skill-announcement {
+  position: absolute;
+  top: 20%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 7px 13px;
+  background: linear-gradient(90deg, #bb395d12, #af3e64d1, #bb395d12);
+  border-top: 1px solid #fa789681;
+  color: #ffe6ed;
+  font-size: 11px;
+  white-space: nowrap;
+  z-index: 7;
+  animation: chat-in 0.3s ease-out;
+}
+.skill-announcement > span {
+  font-size: 8px;
+  opacity: 0.7;
+  margin-right: 5px;
+}
+.is-preview .skill-announcement {
+  background: linear-gradient(90deg, transparent, #244f71d1, transparent);
+  border-color: #7cbcdf75;
+}
+.v05-scene .kill-feed {
+  z-index: 8;
+  top: 53px;
+  right: 10px;
+  max-width: 30%;
+  font-size: 9px;
+  text-align: left;
+}
+.v05-scene .kill-feed > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 7px;
+  background: #713c4fba;
+  border-right: 2px solid #ef8fa4;
+  border-radius: 2px;
+  flex-wrap: wrap;
+}
+.v05-scene .kill-feed > span.kill {
+  background: #2b6969b3;
+  border-color: #8be3c7;
+}
+.kill-feed .agent-portrait {
+  width: 18px;
+  height: 20px;
+}
+.v05-scene .kill-feed b {
+  font-size: 20px;
+  line-height: 1;
+  font-weight: 400;
+}
+.v05-scene .kill-feed small {
+  flex-basis: 100%;
+  margin: 0;
+  max-width: 100%;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 7px;
+  color: #d4e1e3;
+}
+.kill-feed .secondary {
+  margin-top: 3px;
+  font-size: 7px;
+}
+.v05-scene .scene-location {
+  z-index: 7;
+  left: 12px;
+  bottom: 69px;
+}
+.v05-scene .scene-location b {
+  font-size: 12px;
+  text-shadow: 0 1px 6px #000;
+}
+.v05-scene .scene-location small {
+  font-size: 8px;
+  color: #f2f2e7;
+}
+.v05-scene .reticle {
+  left: 50%;
+  top: 50%;
+  width: 20px;
+  height: 20px;
+  z-index: 7;
+  transform: translate(-50%, -50%);
+}
+.reticle i {
+  position: absolute;
+  background: #89ffbf;
+  box-shadow: 0 0 2px #1f3234;
+  width: 7px;
+  height: 2px;
+  left: 0;
+  top: 9px;
+}
+.reticle i:nth-child(2) {
+  left: 13px;
+}
+.reticle i:nth-child(3) {
+  width: 2px;
+  height: 7px;
+  left: 9px;
+  top: 0;
+}
+.reticle i:nth-child(4) {
+  width: 2px;
+  height: 7px;
+  left: 9px;
+  top: 13px;
+}
+.reticle.hit i {
+  background: #fff6b7;
+}
+.v05-scene .aim-point {
+  width: 44px;
+  height: 44px;
+  border: 1px solid #b7ffc755;
+  background: #bcffdb08;
+  z-index: 8;
+  box-shadow: none;
+  display: grid;
+  place-items: center;
+}
+.aim-point span {
+  width: 8px;
+  height: 8px;
+  border: 1px solid #c9ffdc;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #c0ffe0;
+}
+.v05-scene .aim-point:hover {
+  background: #a3f2c320;
+  box-shadow: 0 0 10px #b5f5b933;
+}
+.v05-scene .hit-feedback {
+  z-index: 10;
+  color: #fff3c3;
+  font-size: 11px;
+  left: 46%;
+  top: 57%;
+}
+.v05-scene .fps-bottom {
+  z-index: 8;
+  left: 13px;
+  right: 13px;
+  bottom: 9px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #d6e0e233;
+  padding-top: 8px;
+  gap: 12px;
+  font-family: system-ui, sans-serif;
+}
+.player-identity {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11px;
+}
+.player-identity .agent-portrait {
+  width: 33px;
+  height: 37px;
+  border: 1px solid #c8c8df;
+}
+.player-identity small {
+  display: block;
+  font-size: 7px;
+  opacity: 0.7;
+  margin-top: 3px;
+}
+.health-hud {
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.health-hud em {
+  font-style: normal;
+  color: #8fe8c1;
+  font-size: 16px;
+}
+.health-hud small {
+  font-size: 7px;
+  color: #d5e5e9;
+}
+.ability-hud {
+  display: flex;
+  gap: 19px;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
+}
+.ability-hud > span {
+  font-size: 25px;
+  line-height: 1;
+  text-align: center;
+  position: relative;
+  color: #e9f2f2;
+  opacity: 0.6;
+}
+.ability-hud > span small {
+  display: block;
+  border-bottom: 3px solid #779d9c;
+  font-size: 7px;
+  padding: 5px 3px 3px;
+  margin-top: 3px;
+}
+.ability-hud > span.active {
+  opacity: 1;
+  color: #baffdb;
+  text-shadow: 0 0 8px #6ee5ba;
+}
+.ability-hud > span.active small {
+  border-color: #8ef4c4;
+}
+.ammo-hud {
+  text-align: right;
+  min-width: 80px;
+}
+.ammo-hud b {
+  font-size: 25px;
+}
+.ammo-hud small {
+  font-size: 9px;
+  color: #dce5ea;
+}
+.ammo-hud > span {
+  display: block;
+  font-size: 7px;
+  letter-spacing: 0.5px;
+  margin-top: 4px;
+  color: #e2d8e0;
+}
+.v05-scene .round-banner {
+  z-index: 9;
+  top: 31%;
+  left: 28%;
+  right: 28%;
+  padding: 11px 8px;
+  backdrop-filter: blur(5px);
+  background: linear-gradient(120deg, #174a45dc, #173a49df);
+  border: 1px solid #7fcdb2b0;
+  box-shadow: 0 7px 30px #0b172c42;
+  border-radius: 4px;
+}
+.v05-scene .round-banner b {
+  font-size: 25px;
+  letter-spacing: 5px;
+  color: #d9ffee;
+}
+.result-emblem {
+  font-size: 25px;
+  color: #b7f4dd;
+  display: block;
+  margin-bottom: 4px;
+}
+.v05-scene .round-banner small {
+  font-size: 8px;
+  line-height: 1.7;
+  color: #b9d6d1;
+}
+.v05-scene .round-banner em {
+  display: block;
+  font-style: normal;
+  font-size: 9px;
+  margin-top: 7px;
+  color: #f3daa7;
+}
+.v05-scene .round-banner.lost {
+  background: linear-gradient(120deg, #783047dc, #43233ede);
+  border-color: #e57697aa;
+}
+.v05-scene .round-banner.lost b,
+.v05-scene .round-banner.lost .result-emblem {
+  color: #ffbfd0;
+}
+.v05-scene .round-banner.saved {
+  background: #253f50e0;
+  border-color: #94cbd8;
+}
+.battle-impact.outcome-won:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 45px #86e7c94d;
+  pointer-events: none;
+  animation: impact-fade 1s ease-out;
+}
+.battle-impact.outcome-lost:after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  box-shadow: inset 0 0 45px #fb6a8c55;
+  pointer-events: none;
+  animation: impact-fade 1s ease-out;
+}
+@keyframes weapon-kick {
+  0% {
+    translate: 0 0;
+  }
+  35% {
+    translate: 10px 12px;
+    rotate: -1deg;
+  }
+  100% {
+    translate: 0 0;
+  }
+}
+@keyframes smoke-appear {
+  from {
+    opacity: 0;
+    scale: 0.85;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+  }
+}
+@keyframes smoke-swirl {
+  from {
+    transform: translate(0, 0) rotate(-20deg);
+  }
+  to {
+    transform: translate(12%, 15%) rotate(30deg);
+  }
+}
+@keyframes dash-in {
+  from {
+    opacity: 0;
+    transform: translateX(-12%);
+  }
+  50% {
+    opacity: 1;
+  }
+  to {
+    opacity: 0.6;
+    transform: translateX(0);
+  }
+}
+@keyframes scan-in {
+  from {
+    opacity: 0;
+    scale: 0.9;
+  }
+  to {
+    opacity: 0.65;
+    scale: 1;
+  }
+}
+@keyframes orb-in {
+  from {
+    scale: 0.3;
+    opacity: 0;
+  }
+  to {
+    scale: 1;
+    opacity: 1;
+  }
+}
+@keyframes beacon-pulse {
+  from {
+    scale: 0.7;
+    opacity: 0.9;
+  }
+  to {
+    scale: 1.6;
+    opacity: 0.1;
+  }
+}
+@keyframes dust-drift {
+  0% {
+    translate: 0 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.7;
+  }
+  100% {
+    translate: 20px -30px;
+    opacity: 0;
+  }
+}
+@keyframes impact-fade {
+  to {
+    opacity: 0;
+  }
+}
+@media (max-width: 1100px) {
+  .v05-scene .fps-score {
+    grid-template-columns: 49px 26px 47px 26px 49px;
+  }
+  .squad-faces .agent-portrait {
+    width: 15px;
+    height: 24px;
+  }
+  .squad-faces {
+    height: 26px;
+  }
+  .v05-scene .fps-score > span {
+    font-size: 16px;
+    padding: 4px 0;
+  }
+  .v05-scene .fps-score > b {
+    font-size: 14px;
+    padding: 7px 0;
+  }
+  .scene-stream {
+    font-size: 8px;
+    left: 8px;
+    top: 8px;
+  }
+  .scene-stream > span {
+    padding: 5px;
+  }
+  .v05-scene .minimap {
+    width: 79px;
+    top: 48px;
+    left: 8px;
+  }
+  .v05-scene .fps-bottom {
+    gap: 8px;
+  }
+  .ability-hud {
+    gap: 12px;
+  }
+  .ability-hud > span {
+    font-size: 19px;
+  }
+  .health-hud {
+    font-size: 20px;
+  }
+  .player-identity > span {
+    display: none;
+  }
+  .player-identity .agent-portrait {
+    width: 28px;
+    height: 31px;
+  }
+}
+@media (max-width: 720px) {
+  .v05-scene {
+    aspect-ratio: 16/10;
+  }
+  .v05-scene .fps-score {
+    top: 7px;
+    grid-template-columns: 30px 20px 38px 20px 30px;
+  }
+  .v05-scene .fps-score small {
+    font-size: 6px;
+    padding: 2px;
+  }
+  .squad-faces {
+    height: 22px;
+    padding: 1px;
+    gap: 0;
+  }
+  .squad-faces .agent-portrait {
+    width: 14px;
+    height: 19px;
+  }
+  .squad-faces .agent-portrait:last-child {
+    display: none;
+  }
+  .v05-scene .fps-score > span {
+    font-size: 13px;
+    padding: 3px 0;
+  }
+  .v05-scene .fps-score > b {
+    font-size: 12px;
+    padding: 6px 0;
+  }
+  .scene-stream {
+    font-size: 6px;
+    top: 7px;
+    left: 6px;
+    gap: 2px;
+  }
+  .scene-stream > span {
+    padding: 4px;
+  }
+  .scene-stream > span + span {
+    display: none;
+  }
+  .v05-scene .minimap {
+    top: 40px;
+    width: 60px;
+    left: 5px;
+    padding: 4px;
+  }
+  .v05-scene .minimap small {
+    font-size: 6px;
+  }
+  .v05-scene .skill-announcement {
+    font-size: 8px;
+    padding: 5px 7px;
+    top: 24%;
+  }
+  .skill-announcement > span {
+    font-size: 6px;
+  }
+  .v05-scene .kill-feed {
+    top: 44px;
+    right: 5px;
+    font-size: 6px;
+    max-width: 27%;
+  }
+  .kill-feed .agent-portrait {
+    width: 12px;
+    height: 14px;
+  }
+  .v05-scene .kill-feed > span {
+    gap: 3px;
+    padding: 3px;
+  }
+  .v05-scene .kill-feed b {
+    font-size: 12px;
+  }
+  .v05-scene .kill-feed small {
+    font-size: 5px;
+  }
+  .v05-scene .kill-feed .secondary {
+    font-size: 5px;
+  }
+  .v05-scene .scene-location {
+    left: 7px;
+    bottom: 47px;
+  }
+  .v05-scene .scene-location b {
+    font-size: 9px;
+  }
+  .v05-scene .scene-location small {
+    font-size: 6px;
+  }
+  .v05-scene .fps-bottom {
+    left: 7px;
+    right: 7px;
+    bottom: 6px;
+    gap: 8px;
+    padding-top: 5px;
+  }
+  .player-identity .agent-portrait {
+    width: 22px;
+    height: 25px;
+  }
+  .health-hud {
+    font-size: 17px;
+    gap: 4px;
+  }
+  .health-hud em {
+    font-size: 11px;
+  }
+  .health-hud small {
+    display: none;
+  }
+  .ability-hud {
+    gap: 11px;
+  }
+  .ability-hud > span {
+    font-size: 16px;
+  }
+  .ability-hud > span small {
+    font-size: 5px;
+    padding: 3px 1px 2px;
+  }
+  .ammo-hud {
+    min-width: 48px;
+  }
+  .ammo-hud b {
+    font-size: 18px;
+  }
+  .ammo-hud small {
+    font-size: 6px;
+  }
+  .ammo-hud > span {
+    font-size: 5px;
+    letter-spacing: 0;
+    margin-top: 2px;
+  }
+  .weapon-layer {
+    width: 66%;
+    right: -4%;
+    bottom: 1%;
+  }
+  .v05-scene .round-banner {
+    left: 22%;
+    right: 22%;
+    top: 31%;
+    padding: 8px 5px;
+  }
+  .v05-scene .round-banner b {
+    font-size: 17px;
+    letter-spacing: 3px;
+  }
+  .result-emblem {
+    font-size: 18px;
+    margin-bottom: 1px;
+  }
+  .v05-scene .round-banner small {
+    font-size: 6px;
+    margin-top: 4px;
+  }
+  .v05-scene .round-banner em {
+    font-size: 6px;
+    margin-top: 4px;
+  }
+  .v05-scene .hit-feedback {
+    font-size: 8px;
+    left: 41%;
+    top: 61%;
+  }
+  .flash-orb span {
+    font-size: 27px;
+  }
+  .enemy-lock {
+    font-size: 5px;
+    padding: 2px 3px;
+    top: -9px;
+  }
+  .signal-beacon {
+    scale: 0.65;
+    transform-origin: left top;
+  }
+  .smoke-dome {
+    width: 35%;
+    left: 45%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .v05-scene *,
+  .v05-scene:after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,3 +1,4 @@
+export type MapId = 'oldtown' | 'transit' | 'harbor'
 export type Style = 'technical' | 'entertainment' | 'balanced'
 export type ClipType = '技术型' | '娱乐型' | '教学型'
 export type Tag =
@@ -127,6 +128,7 @@ export interface History {
   clip: Clip | null
 }
 export interface Save {
+  mapId?: MapId
   version: 4
   day: number
   fans: number
